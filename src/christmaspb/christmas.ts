@@ -5,14 +5,6 @@ export const protobufPackage = "christmas";
 
 export interface LEDClientMessage {
   /**
-   * Authenticate with the server. Sends back an AuthenticateResponse.
-   * This must be the first message sent to the server, otherwise the
-   * connection is closed.
-   */
-  authenticate?:
-    | AuthenticateRequest
-    | undefined;
-  /**
    * Return information about the LED canvas. Sends back a
    * GetLEDCanvasInfoResponse.
    * The caller must use this information to determine the size of the image
@@ -41,10 +33,6 @@ export interface LEDClientMessage {
 }
 
 export interface LEDServerMessage {
-  /** Response to AuthenticateRequest. */
-  authenticate?:
-    | AuthenticateResponse
-    | undefined;
   /** Response to GetLEDCanvasInfoRequest. */
   getLedCanvasInfo?:
     | GetLEDCanvasInfoResponse
@@ -58,19 +46,6 @@ export interface LEDServerMessage {
    * the error.
    */
   error?: string | undefined;
-}
-
-export interface AuthenticateRequest {
-  /**
-   * The secret to authenticate with. This is given beforehand, make sure you
-   * have one before you try to authenticate.
-   */
-  secret: string;
-}
-
-export interface AuthenticateResponse {
-  /** Whether the authentication succeeded. */
-  success: boolean;
 }
 
 export interface GetLEDsRequest {
@@ -120,20 +95,11 @@ export interface RGBAPixels {
 }
 
 function createBaseLEDClientMessage(): LEDClientMessage {
-  return {
-    authenticate: undefined,
-    getLedCanvasInfo: undefined,
-    setLedCanvas: undefined,
-    getLeds: undefined,
-    setLeds: undefined,
-  };
+  return { getLedCanvasInfo: undefined, setLedCanvas: undefined, getLeds: undefined, setLeds: undefined };
 }
 
 export const LEDClientMessage = {
   encode(message: LEDClientMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.authenticate !== undefined) {
-      AuthenticateRequest.encode(message.authenticate, writer.uint32(10).fork()).ldelim();
-    }
     if (message.getLedCanvasInfo !== undefined) {
       GetLEDCanvasInfoRequest.encode(message.getLedCanvasInfo, writer.uint32(18).fork()).ldelim();
     }
@@ -156,13 +122,6 @@ export const LEDClientMessage = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.authenticate = AuthenticateRequest.decode(reader, reader.uint32());
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -202,7 +161,6 @@ export const LEDClientMessage = {
 
   fromJSON(object: any): LEDClientMessage {
     return {
-      authenticate: isSet(object.authenticate) ? AuthenticateRequest.fromJSON(object.authenticate) : undefined,
       getLedCanvasInfo: isSet(object.getLedCanvasInfo)
         ? GetLEDCanvasInfoRequest.fromJSON(object.getLedCanvasInfo)
         : undefined,
@@ -214,9 +172,6 @@ export const LEDClientMessage = {
 
   toJSON(message: LEDClientMessage): unknown {
     const obj: any = {};
-    if (message.authenticate !== undefined) {
-      obj.authenticate = AuthenticateRequest.toJSON(message.authenticate);
-    }
     if (message.getLedCanvasInfo !== undefined) {
       obj.getLedCanvasInfo = GetLEDCanvasInfoRequest.toJSON(message.getLedCanvasInfo);
     }
@@ -237,9 +192,6 @@ export const LEDClientMessage = {
   },
   fromPartial<I extends Exact<DeepPartial<LEDClientMessage>, I>>(object: I): LEDClientMessage {
     const message = createBaseLEDClientMessage();
-    message.authenticate = (object.authenticate !== undefined && object.authenticate !== null)
-      ? AuthenticateRequest.fromPartial(object.authenticate)
-      : undefined;
     message.getLedCanvasInfo = (object.getLedCanvasInfo !== undefined && object.getLedCanvasInfo !== null)
       ? GetLEDCanvasInfoRequest.fromPartial(object.getLedCanvasInfo)
       : undefined;
@@ -257,14 +209,11 @@ export const LEDClientMessage = {
 };
 
 function createBaseLEDServerMessage(): LEDServerMessage {
-  return { authenticate: undefined, getLedCanvasInfo: undefined, getLeds: undefined, error: undefined };
+  return { getLedCanvasInfo: undefined, getLeds: undefined, error: undefined };
 }
 
 export const LEDServerMessage = {
   encode(message: LEDServerMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.authenticate !== undefined) {
-      AuthenticateResponse.encode(message.authenticate, writer.uint32(10).fork()).ldelim();
-    }
     if (message.getLedCanvasInfo !== undefined) {
       GetLEDCanvasInfoResponse.encode(message.getLedCanvasInfo, writer.uint32(18).fork()).ldelim();
     }
@@ -284,13 +233,6 @@ export const LEDServerMessage = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.authenticate = AuthenticateResponse.decode(reader, reader.uint32());
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -323,7 +265,6 @@ export const LEDServerMessage = {
 
   fromJSON(object: any): LEDServerMessage {
     return {
-      authenticate: isSet(object.authenticate) ? AuthenticateResponse.fromJSON(object.authenticate) : undefined,
       getLedCanvasInfo: isSet(object.getLedCanvasInfo)
         ? GetLEDCanvasInfoResponse.fromJSON(object.getLedCanvasInfo)
         : undefined,
@@ -334,9 +275,6 @@ export const LEDServerMessage = {
 
   toJSON(message: LEDServerMessage): unknown {
     const obj: any = {};
-    if (message.authenticate !== undefined) {
-      obj.authenticate = AuthenticateResponse.toJSON(message.authenticate);
-    }
     if (message.getLedCanvasInfo !== undefined) {
       obj.getLedCanvasInfo = GetLEDCanvasInfoResponse.toJSON(message.getLedCanvasInfo);
     }
@@ -354,9 +292,6 @@ export const LEDServerMessage = {
   },
   fromPartial<I extends Exact<DeepPartial<LEDServerMessage>, I>>(object: I): LEDServerMessage {
     const message = createBaseLEDServerMessage();
-    message.authenticate = (object.authenticate !== undefined && object.authenticate !== null)
-      ? AuthenticateResponse.fromPartial(object.authenticate)
-      : undefined;
     message.getLedCanvasInfo = (object.getLedCanvasInfo !== undefined && object.getLedCanvasInfo !== null)
       ? GetLEDCanvasInfoResponse.fromPartial(object.getLedCanvasInfo)
       : undefined;
@@ -364,120 +299,6 @@ export const LEDServerMessage = {
       ? GetLEDsResponse.fromPartial(object.getLeds)
       : undefined;
     message.error = object.error ?? undefined;
-    return message;
-  },
-};
-
-function createBaseAuthenticateRequest(): AuthenticateRequest {
-  return { secret: "" };
-}
-
-export const AuthenticateRequest = {
-  encode(message: AuthenticateRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.secret !== "") {
-      writer.uint32(10).string(message.secret);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AuthenticateRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAuthenticateRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.secret = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AuthenticateRequest {
-    return { secret: isSet(object.secret) ? globalThis.String(object.secret) : "" };
-  },
-
-  toJSON(message: AuthenticateRequest): unknown {
-    const obj: any = {};
-    if (message.secret !== "") {
-      obj.secret = message.secret;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AuthenticateRequest>, I>>(base?: I): AuthenticateRequest {
-    return AuthenticateRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AuthenticateRequest>, I>>(object: I): AuthenticateRequest {
-    const message = createBaseAuthenticateRequest();
-    message.secret = object.secret ?? "";
-    return message;
-  },
-};
-
-function createBaseAuthenticateResponse(): AuthenticateResponse {
-  return { success: false };
-}
-
-export const AuthenticateResponse = {
-  encode(message: AuthenticateResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.success === true) {
-      writer.uint32(8).bool(message.success);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AuthenticateResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAuthenticateResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.success = reader.bool();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AuthenticateResponse {
-    return { success: isSet(object.success) ? globalThis.Boolean(object.success) : false };
-  },
-
-  toJSON(message: AuthenticateResponse): unknown {
-    const obj: any = {};
-    if (message.success === true) {
-      obj.success = message.success;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(base?: I): AuthenticateResponse {
-    return AuthenticateResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(object: I): AuthenticateResponse {
-    const message = createBaseAuthenticateResponse();
-    message.success = object.success ?? false;
     return message;
   },
 };

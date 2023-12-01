@@ -27,11 +27,10 @@ export class LEDCanvas extends Client {
     return info;
   }
 
-  draw(info: CanvasInfo, image: Image): void;
-  draw(info: CanvasInfo, image: imagejs.Image): void;
-
   draw(info: CanvasInfo, image: Image | imagejs.Image) {
-    if (image instanceof imagejs.Image) {
+    // Compare constructor.name instead of using instanceof because
+    // instanceof doesn't work across module boundaries.
+    if (isIJSImage(image)) {
       if (image.width !== info.width || image.height !== info.height) {
         image = image.resize({
           width: info.width,
@@ -55,7 +54,7 @@ export class LEDCanvas extends Client {
     const expectedPixels = info.width * info.height * 4;
     if (image.pixels.length !== expectedPixels) {
       throw new Error(
-        `BUG: image has ${image.pixels.length} pixels, expected ${expectedPixels}`,
+        `image has ${image.pixels.length} pixels, expected ${expectedPixels}`,
       );
     }
 
@@ -67,4 +66,12 @@ export class LEDCanvas extends Client {
       },
     });
   }
+}
+
+// isIJSImage returns true if the given object is an image-js Image.
+// This function is used to work around the fact that instanceof doesn't
+// work across module boundaries.
+// See https://stackoverflow.com/a/76563801/5041327.
+function isIJSImage(image: any): image is imagejs.Image {
+  return imagejs.Image.isImage(image);
 }

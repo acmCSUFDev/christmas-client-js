@@ -1,6 +1,6 @@
 import { LEDClientMessage, LEDServerMessage } from "./christmaspb/christmas.js";
 import { Emitter } from "strict-event-emitter";
-import WebSocket from "isomorphic-ws";
+import WebSocket from "ws";
 
 export type CloseEvent = {
   reason: string;
@@ -10,11 +10,6 @@ export type Events = {
   open: [void];
   close: [CloseEvent];
   message: [LEDServerMessage];
-};
-
-type WSCloseEvent = {
-  code: number;
-  reason: string | Buffer;
 };
 
 export class Client extends Emitter<Events> {
@@ -28,18 +23,9 @@ export class Client extends Emitter<Events> {
 
   // connect connects to the server and authenticates with the given secret.
   // It blocks until the connection is established.
-  async connect(secret: string) {
-    const authedEventPromise = this.nextMessage();
-
+  async connect() {
     this.init();
     await this.openPromise;
-
-    this.send({ authenticate: { secret } });
-
-    const authedEvent = await authedEventPromise;
-    if (!authedEvent.authenticate?.success) {
-      throw new Error("authentication failed");
-    }
   }
 
   close(graceful: boolean = true) {
@@ -93,48 +79,56 @@ export class Client extends Emitter<Events> {
   private init() {
     if (this.ws) return;
 
-    console.log("connecting to websocket...");
-
     const ws = new WebSocket(this.url);
     this.ws = ws;
-    this.ws.addListener("open", this.onOpen.bind(this));
-    this.ws.addListener("close", this.onClose.bind(this));
-    this.ws.addListener("message", this.onMessage.bind(this));
+
+    ws.addEventListener("open", () => {
+      this.emit("open");
+    });
+
+    ws.addEventListener("close", (ev) => {
+      const reason = maybeBufferToString(ev.reason);
+      this.emit("close", { reason });
+      this.ws = null;
+    });
+
+    ws.addEventListener("message", (ev) => {
+      const data = LEDServerMessage.decode(wsDataToBytes(ev.data));
+      this.emit("message", data);
+    });
 
     this.openPromise = new Promise((resolve, reject) => {
-      if (!ws) {
-        throw "ws should not be null";
-      }
-      ws.addListener("open", () => {
+      ws.addEventListener("open", () => {
         resolve();
       });
-      ws.addListener("close", (ev: WSCloseEvent) => {
+
+      ws.addEventListener("close", (ev) => {
         const reason = maybeBufferToString(ev.reason);
         reject(new Error(`closed (code ${ev.code}): ${reason}`));
       });
-      ws.addListener("error", (ev: { error: Error }) => {
+
+      ws.addEventListener("error", () => {
         reject(new Error(`websocket connection error: server unreachable`));
       });
     });
   }
-
-  private async onOpen() {
-    this.emit("open");
-  }
-
-  private async onClose(ev: WSCloseEvent) {
-    const reason = maybeBufferToString(ev.reason);
-    this.emit("close", { reason });
-    this.ws = null;
-  }
-
-  private async onMessage(event: { data: ArrayBuffer }) {
-    const data = LEDServerMessage.decode(new Uint8Array(event.data));
-    this.emit("message", data);
-  }
 }
 
-function maybeBufferToString(buf: Buffer | string): string {
+function wsDataToBytes(buf: WebSocket.Data): Uint8Array {
+  // JavaScript is a wonderful language :)
+  if (buf instanceof ArrayBuffer) {
+    return new Uint8Array(buf);
+  }
+  if (buf instanceof Buffer) {
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  }
+  if (typeof buf === "string") {
+    return new TextEncoder().encode(buf);
+  }
+  throw new Error("unknown websocket data type");
+}
+
+function maybeBufferToString(buf: string | Buffer): string {
   if (buf instanceof Buffer) {
     return buf.toString();
   }

@@ -7,14 +7,14 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "rootDir": "src",
-    "resolveJsonModule": true,
     "allowJs": true,
-    "outDir": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
-    "skipLibCheck": true,
-    "declaration": true
+    "skipLibCheck": true
   }
 }

@@ -1,2 +1,2 @@
-import "./client.js";
-import "./canvas.js";
+export * from "./client.js";
+export * from "./canvas.js";
