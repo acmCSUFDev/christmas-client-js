@@ -748,4 +748,44 @@ function isIJSImage(image) {
   return imagejs.Image.isImage(image);
 }
 
-export { Client, LEDCanvas };
+function RGBToColor(r, g, b) {
+  if (r < 0 || r > 255) {
+    throw new Error("r must be between 0 and 255");
+  }
+  if (g < 0 || g > 255) {
+    throw new Error("g must be between 0 and 255");
+  }
+  if (b < 0 || b > 255) {
+    throw new Error("b must be between 0 and 255");
+  }
+  return r << 16 | g << 8 | b;
+}
+function HexToColor(hex) {
+  if (hex.startsWith("#")) {
+    hex = hex.slice(1);
+  }
+  return parseInt(hex, 16);
+}
+class LEDController extends Client {
+  // getLEDs returns the current colors of the LEDs on the device.
+  // It waits for the response from the device before returning.
+  // To get the number of LEDs on the device, get the length of the returned
+  // array.
+  async getLEDs() {
+    const promise = this.nextMessage("getLeds");
+    this.send({ getLeds: {} });
+    const response = await promise;
+    return response.getLeds.leds;
+  }
+  // setLEDs asynchronously sets the LEDs on the device to the given colors. The
+  // length of colors must be equal to the number of LEDs on the device. The
+  // controller does not check this, so it is up to the user to ensure this is
+  // true.
+  setLEDs(colors) {
+    this.send({
+      setLeds: { leds: colors }
+    });
+  }
+}
+
+export { Client, HexToColor, LEDCanvas, LEDController, RGBToColor };

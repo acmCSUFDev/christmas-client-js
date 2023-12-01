@@ -342,4 +342,12 @@ declare class LEDCanvas extends Client {
     draw(info: CanvasInfo, image: Image | imagejs.Image): void;
 }
 
-export { Client, type CloseEvent, type Events, type Image, LEDCanvas };
+type Color = number;
+declare function RGBToColor(r: number, g: number, b: number): Color;
+declare function HexToColor(hex: string): Color;
+declare class LEDController extends Client {
+    getLEDs(): Promise<Color[]>;
+    setLEDs(colors: Color[]): void;
+}
+
+export { Client, type CloseEvent, type Color, type Events, HexToColor, type Image, LEDCanvas, LEDController, RGBToColor };
